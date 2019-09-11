@@ -329,9 +329,6 @@ classification_report                precision    recall  f1-score   support
    macro avg       0.08      0.33      0.13       616
 weighted avg       0.05      0.23      0.09       616`
 ### tuning-appr-2.1(Bi-lstm-dropout-l2)
-1. dropout(hidden = tf.nn.dropout(hidden, keep_prob=self.keep_prob2))
-2. numhop = 0
-3. l2-regularisation
 ### Train
 all samples=1205, correct prediction=597.0
 Iter 19: mini-batch loss=1.259123, test acc=0.495436
