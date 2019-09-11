@@ -310,8 +310,55 @@ f1_score 0.6990595611285266
 Optimization Finished! Max acc=0.4954356846473029
 mathod=	MLSTM	acc=	0.4954356846473029	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	173.62671947479248	testtime=	0.5884609222412109	hopnum=	0	maxacc=	0.4954356846473029
 <img src="models/lstm_tuning-appr-2.1.png">
+### Test
+inside restore : 
+all samples=1616, correct prediction=366.0
+mini-batch loss=1.940905, test acc=0.226485
+Precision 0.23376623376623376
+Recall 0.23376623376623376
+f1_score 0.23376623376623376
+`Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+classification_report                precision    recall  f1-score   support
+
+           0       0.00      0.00      0.00        34
+           1       0.00      0.00      0.00       438
+           2       0.23      1.00      0.38       144
+
+   micro avg       0.23      0.23      0.23       616
+   macro avg       0.08      0.33      0.13       616
+weighted avg       0.05      0.23      0.09       616`
 ### tuning-appr-2.1(Bi-lstm-dropout-l2)
 1. dropout(hidden = tf.nn.dropout(hidden, keep_prob=self.keep_prob2))
 2. numhop = 0
 3. l2-regularisation
 ### Train
+all samples=1205, correct prediction=597.0
+Iter 19: mini-batch loss=1.259123, test acc=0.495436
+all samples=1638, correct prediction in train=1156.0
+Iter 19: mini-batch loss=0.781837, train acc=0.705739
+Precision 0.6990595611285266
+Recall 0.6990595611285266
+f1_score 0.6990595611285266
+Optimization Finished! Max acc=0.4954356846473029
+mathod=	BiLSTM	acc=	0.4954356846473029	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	122.13503646850586	testtime=	0.23301935195922852	hopnum=	0	maxacc=	0.4954356846473029
+<img src="models/lstm_tuning-appr-2.1-BiLstm.png">
+### Test
+inside restore : 
+all samples=1616, correct prediction=366.0
+mini-batch loss=1.882008, test acc=0.226485
+Precision 0.23376623376623376
+Recall 0.23376623376623376
+f1_score 0.23376623376623376
+`Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+classification_report                precision    recall  f1-score   support
+
+           0       0.00      0.00      0.00        34
+           1       0.00      0.00      0.00       438
+           2       0.23      1.00      0.38       144
+
+   micro avg       0.23      0.23      0.23       616
+   macro avg       0.08      0.33      0.13       616
+weighted avg       0.05      0.23      0.09       616
+`

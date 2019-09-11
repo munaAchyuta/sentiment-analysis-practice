@@ -4,6 +4,7 @@ import math
 import os
 import numpy as np
 import tensorflow as tf
+from tensorflow.contrib import rnn
 from utils import batch_index, load_inputs_data_at, load_data_init, load_input_data_at
 from sklearn.model_selection import StratifiedShuffleSplit
 import matplotlib.pyplot as plt
@@ -56,7 +57,7 @@ tf.app.flags.DEFINE_float('keep_prob0', keep_prob0_init, 'dropout keep prob')
 
 tf.app.flags.DEFINE_string('dataset', 'data/ms_St1k_train_data.txt', 'training file')
 tf.app.flags.DEFINE_string('devset', 'data/dev_data.txt', 'development file')
-tf.app.flags.DEFINE_string('testset', 'data/ms_St500_test_data.txt', 'testing file')#ms_St500_test_data.txt
+tf.app.flags.DEFINE_string('testset', 'data/St_test_data.txt', 'testing file')#ms_St500_test_data.txt
 tf.app.flags.DEFINE_string('embedding_file_path', 'data/glove.6B.300d.txt', 'embedding file')
 tf.app.flags.DEFINE_string('entity_id_file_path', 'data/ms_St_tag_data.txt', 'entity-id mapping file')
 tf.app.flags.DEFINE_string('method', method.split('-')[0], 'model type: AE, AT or AEAT')
@@ -94,7 +95,7 @@ class LSTM(object):
         self.keep_prob2 = tf.placeholder(tf.float32)
         self.keep_prob0 = tf.placeholder(tf.float32)
 
-        self.restore=False
+        self.restore=True
         self.needdev=False
         if self.restore:
             self.needdev = False
@@ -123,6 +124,16 @@ class LSTM(object):
                 'softmax': tf.get_variable(
                     name='softmax_b',
                     shape=[self.n_class],
+                    initializer=tf.random_uniform_initializer(-0.01, 0.01),
+                    regularizer=tf.contrib.layers.l2_regularizer(self.l2_reg)
+                )
+            }
+        
+        with tf.name_scope('Bilstm_weights'):
+            self.bilstm_weights = {
+                'bilstm_softmax_w': tf.get_variable(
+                    name='bilstm_softmax_w',
+                    shape=[self.n_hidden*2, self.n_class],
                     initializer=tf.random_uniform_initializer(-0.01, 0.01),
                     regularizer=tf.contrib.layers.l2_regularizer(self.l2_reg)
                 )
@@ -277,7 +288,8 @@ class LSTM(object):
         # Required shape: 'timesteps' tensors list of shape (batch_size, num_input)
 
         # Unstack to get a list of 'timesteps' tensors of shape (batch_size, num_input)
-        x = tf.unstack(inputs, self.n_hidden, 1)
+        #sentence_size = tf.shape(inputs)[1]
+        x = tf.unstack(inputs, self.max_sentence_len, 1)
 
         # Define lstm cells with tensorflow
         # Forward direction cell
@@ -287,10 +299,23 @@ class LSTM(object):
 
         # Get BiRNN cell output
         outputs, _, _ = rnn.static_bidirectional_rnn(lstm_fw_cell, lstm_bw_cell, x, dtype=tf.float32)
-        
+        #print("BiRNN outputs shape : ",outputs.shape)
         #outputs, states = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, x, dtype=tf.float32)
         # Concat the forward and backward outputs
         #output = tf.concat(outputs,2)
+        '''
+        for n in range(num_layers):
+            (out_fw, out_bw), (state_fw, state_bw) = tf.nn.bidirectional_dynamic_rnn(
+                cell_fw = cells(size_layer // 2),
+                cell_bw = cells(size_layer // 2),
+                inputs = encoder_embedded,
+                dtype = tf.float32,
+                scope = 'bidirectional_rnn_%d'%(n))
+            encoder_embedded = tf.concat((out_fw, out_bw), 2)
+        W = tf.get_variable('w',shape=(size_layer, dimension_output),initializer=tf.orthogonal_initializer())
+        b = tf.get_variable('b',shape=(dimension_output),initializer=tf.zeros_initializer())
+        self.logits = tf.matmul(encoder_embedded[:, -1], W) + b
+        '''
 
         # Linear activation, using rnn inner loop last output
         #return tf.matmul(outputs[-1], weights) + biases
@@ -300,9 +325,9 @@ class LSTM(object):
         print('I am BiLSTM.')
         batch_size = tf.shape(inputs)[0]
         in_t = tf.nn.dropout(inputs, keep_prob=self.keep_prob0)
-        hiddens = BiRNN(in_t)
+        hiddens = self.BiRNN(in_t)
 
-        return LSTM.softmax_layer(hiddens, self.weights['softmax'], self.biases['softmax'], self.keep_prob2)
+        return LSTM.softmax_layer(hiddens, self.bilstm_weights['bilstm_softmax_w'], self.biases['softmax'], self.keep_prob2)
 
     def AT(self, inputs, entity, aspect, type_='last'):
         print('I am AT.')
