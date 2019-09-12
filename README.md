@@ -409,6 +409,8 @@ mathod=	ConvLSTM	acc=	0.17945544554455445	Learning_rate=	0.001	iter_num=	20	batc
 
 # Domain Adaptation Test with Bert.
 
+## COde can be used from (https://github.com/munaAchyuta/NLPusingBERT.git)
+
 ### separate domain train & Test
 ### mix of domains train & Test(train will have small amount from other domain & test will have complete data)
 
