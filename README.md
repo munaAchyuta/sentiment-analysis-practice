@@ -1,3 +1,8 @@
+# Domain Adaptation Test with Different Models.
+
+### separate domain train & Test
+### mix of domains train & Test(train will have small amount from other domain & test will have complete data)
+
 ## Metrics to validate model
 
 #### Different Model architecture
@@ -5,7 +10,7 @@
 1. logistic regression with LSTM - input(text & label) - pretrained-feature(BERT)
 2. CEA - input(text, entity , entity_distance_loc & label) - pretrained-feature(word2vec,hotvec)
 2. CEA - input(text, entity , entity_distance_loc & label) - pretrained-feature(BERT)
-3. other
+3. & others..
 
 #### Test Metrics(data distribution & measurement)
 1. proper randomly sampled train/test dataset (may or maynot same feature in both)
@@ -67,7 +72,7 @@ method = 'CEA'
 hopnum = 3`
 
 ## Using CEA
-### ms data
+### ms data(1670/716)
 #### Train 
 Optimization Finished! Max acc=0.8393854748603352
 mathod=	CEA	acc=	0.8044692737430168	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	225.2829873561859	testtime=	0.5097455978393555	hopnum=	3	maxacc=	0.8393854748603352
@@ -228,6 +233,7 @@ classification_report                precision    recall  f1-score   support
 weighted avg       0.05      0.23      0.09       616
 `
 ## Using SLSTM
+
 ### ms-St1k-train & 500-test combined & tag-data combined
 ### Train
 Iter 19: mini-batch loss=0.095464, train acc=0.968864
@@ -328,7 +334,10 @@ classification_report                precision    recall  f1-score   support
    micro avg       0.23      0.23      0.23       616
    macro avg       0.08      0.33      0.13       616
 weighted avg       0.05      0.23      0.09       616`
-### tuning-appr-2.1(Bi-lstm-dropout-l2)
+### tuning-appr-2.1(Bi-lstm-dropout-l2) with nn.staticBidirectional_lstm
+1. dropout(hidden = tf.nn.dropout(hidden, keep_prob=self.keep_prob2))
+2. numhop = 0
+3. l2-regularisation
 ### Train
 all samples=1205, correct prediction=597.0
 Iter 19: mini-batch loss=1.259123, test acc=0.495436
@@ -359,3 +368,206 @@ classification_report                precision    recall  f1-score   support
    macro avg       0.08      0.33      0.13       616
 weighted avg       0.05      0.23      0.09       616
 `
+### tuning-appr-2.1(Bi-lstm-dropout-l2) with nn.dynamic_idirectional_lstm
+1. dropout(hidden = tf.nn.dropout(hidden, keep_prob=self.keep_prob2))
+2. numhop = 0
+3. l2-regularisation
+### Train
+Iter 19: mini-batch loss=0.781660, train acc=0.705739
+Precision 0.6990595611285266
+Recall 0.6990595611285266
+f1_score 0.6990595611285266
+Optimization Finished! Max acc=0.2264851485148515
+mathod=	BiLSTM	acc=	0.2264851485148515	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	174.52773714065552	testtime=	0.5567402839660645	hopnum=	0	maxacc=	0.2264851485148515
+### tuning-appr-2.1(Bi-lstm-dropout-l2) with nn.dynamic_idirectional_lstm with layer 2
+1. dropout(hidden = tf.nn.dropout(hidden, keep_prob=self.keep_prob2))
+2. numhop = 0
+3. l2-regularisation
+### Train
+Iter 19: mini-batch loss=0.771101, train acc=0.705739
+Precision 0.6990595611285266
+Recall 0.6990595611285266
+f1_score 0.6990595611285266
+Optimization Finished! Max acc=0.2264851485148515
+mathod=	BiLSTM	acc=	0.2264851485148515	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	317.6096820831299	testtime=	1.261897325515747	hopnum=	0	maxacc=	0.2264851485148515
+### tuning-appr-2.1(conv-lstm-dropout-l2)
+2. numhop = 0
+3. l2-regularisation
+### Train
+Iter 3: mini-batch loss=0.525118, train acc=0.833333
+Precision 0.8385579937304075
+Recall 0.8385579937304075
+f1_score 0.8385579937304075
+Optimization Finished! Max acc=0.2264851485148515
+mathod=	ConvLSTM	acc=	0.17945544554455445	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	105.51120042800903	testtime=	1.0928564071655273	hopnum=	0	maxacc=	0.2264851485148515
+
+
+
+
+
+
+
+# Domain Adaptation Test with Bert.
+
+### separate domain train & Test
+### mix of domains train & Test(train will have small amount from other domain & test will have complete data)
+
+### Bert Default Config
+`Model config {
+  "attention_probs_dropout_prob": 0.1,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "max_position_embeddings": 512,
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "type_vocab_size": 2,
+  "vocab_size": 30522
+}`
+
+### data & label-wise distribution
+`1. two domains are. finance(ms) & news(St)`
+1669 -- ms_train
+715 -- ms_test
+1655 -- St_test
+14983 -- St_train
+2669 -- ms_St_1k
+1215 -- ms_St500_test
+6669 -- ms_St_5k
+`
+St-5k
+0       440      0       440
+1      3382      0      3382
+2      1069      0      1069
+`
+`
+St_1k
+0       90      0        90
+1      680      0       680
+2      208      0       208
+`
+`ms_St_5k::
+0       788      0       788
+1      3524      0      3524
+2      2248      0      2248`
+`
+ms_St_1k::
+0       438      0       438
+1       822      0       822
+2      1387      0      1387
+`
+`
+ms_St500_test
+0      189      0       189
+1      427      0       427
+2      598      0       598
+`
+`
+St_test
+label                       
+0       121      0       121
+1      1154      0      1154
+2       365      0       365
+`
+`
+St_train
+0       1091      0      1091
+1      10359      0     10359
+2       3292      0      3292
+`
+`
+ms_test
+0      152      0       152
+1       74      0        74
+2      488      0       488
+`
+`
+ms_train
+0       348      0       348
+1       141      0       141
+2      1179      0      1179
+`
+### ms-1(same domain train/dev(1669/715)) ?below 90 because of non-equal or imbalance distribution of features.
+09/12/2019 08:40:36 - INFO - __main__ -   ***** Running evaluation *****
+09/12/2019 08:40:36 - INFO - __main__ -     Num examples = 715
+09/12/2019 08:40:36 - INFO - __main__ -     Batch size = 8
+Evaluating: 100%|███████████████████████████████| 90/90 [00:23<00:00,  4.49it/s]
+09/12/2019 08:40:59 - INFO - __main__ -   ***** Eval results *****
+09/12/2019 08:40:59 - INFO - __main__ -     eval_accuracy = 0.8643356643356643
+09/12/2019 08:40:59 - INFO - __main__ -     eval_loss = 0.38533345030413735
+09/12/2019 08:40:59 - INFO - __main__ -     global_step = 159
+09/12/2019 08:40:59 - INFO - __main__ -     loss = 0.2732406849006437
+### ms-1(other domain train/dev(1669/1655))
+09/12/2019 08:51:53 - INFO - __main__ -   ***** Running evaluation *****
+09/12/2019 08:51:53 - INFO - __main__ -     Num examples = 1655
+09/12/2019 08:51:53 - INFO - __main__ -     Batch size = 8
+Evaluating: 100%|█████████████████████████████| 207/207 [00:53<00:00,  3.92it/s]
+09/12/2019 08:52:47 - INFO - __main__ -   ***** Eval results *****
+09/12/2019 08:52:47 - INFO - __main__ -     eval_accuracy = 0.5444108761329305
+09/12/2019 08:52:47 - INFO - __main__ -     eval_loss = 0.9103068450222844
+09/12/2019 08:52:47 - INFO - __main__ -     global_step = 159
+09/12/2019 08:52:47 - INFO - __main__ -     loss = 0.2732406849006437
+### St-1(same domain train/dev(14983/1655)
+09/12/2019 09:36:47 - INFO - __main__ -   ***** Running evaluation *****
+09/12/2019 09:36:47 - INFO - __main__ -     Num examples = 1655
+09/12/2019 09:36:47 - INFO - __main__ -     Batch size = 8
+Evaluating: 100%|█████████████████████████████| 207/207 [00:53<00:00,  3.92it/s]
+09/12/2019 09:37:40 - INFO - __main__ -   ***** Eval results *****
+09/12/2019 09:37:40 - INFO - __main__ -     eval_accuracy = 0.9993957703927493
+09/12/2019 09:37:40 - INFO - __main__ -     eval_loss = 0.0014353839588882446
+09/12/2019 09:37:40 - INFO - __main__ -     global_step = 1407
+09/12/2019 09:37:40 - INFO - __main__ -     loss = 0.0018695864883779701
+### St-1(other domain train/dev(14983/1669)
+09/12/2019 11:27:39 - INFO - __main__ -   ***** Running evaluation *****
+09/12/2019 11:27:39 - INFO - __main__ -     Num examples = 1669
+09/12/2019 11:27:39 - INFO - __main__ -     Batch size = 8
+Evaluating: 100%|█████████████████████████████| 209/209 [00:53<00:00,  4.31it/s]
+09/12/2019 11:28:32 - INFO - __main__ -   ***** Eval results *****
+09/12/2019 11:28:32 - INFO - __main__ -     eval_accuracy = 0.463151587777112
+09/12/2019 11:28:32 - INFO - __main__ -     eval_loss = 2.6307097941494444
+09/12/2019 11:28:32 - INFO - __main__ -     global_step = 0
+09/12/2019 11:28:32 - INFO - __main__ -     loss = None
+### ms_St1k(mix domain train/dev(2669/1215(715+499)) -- both mixed
+09/12/2019 10:26:32 - INFO - __main__ -   ***** Running evaluation *****
+09/12/2019 10:26:32 - INFO - __main__ -     Num examples = 1215
+09/12/2019 10:26:32 - INFO - __main__ -     Batch size = 8
+Evaluating: 100%|█████████████████████████████| 152/152 [00:39<00:00,  3.92it/s]
+09/12/2019 10:27:11 - INFO - __main__ -   ***** Eval results *****
+09/12/2019 10:27:11 - INFO - __main__ -     eval_accuracy = 0.8691358024691358
+09/12/2019 10:27:11 - INFO - __main__ -     eval_loss = 0.3954785704171579
+09/12/2019 10:27:11 - INFO - __main__ -     global_step = 252
+09/12/2019 10:27:11 - INFO - __main__ -     loss = 0.2576741098115842
+### ms_St1k(mix domain train/dev(2669/1655) -- only train mixed
+09/12/2019 11:26:14 - INFO - __main__ -   ***** Running evaluation *****
+09/12/2019 11:26:14 - INFO - __main__ -     Num examples = 1655
+09/12/2019 11:26:14 - INFO - __main__ -     Batch size = 8
+Evaluating: 100%|█████████████████████████████| 207/207 [00:53<00:00,  3.94it/s]
+09/12/2019 11:27:07 - INFO - __main__ -   ***** Eval results *****
+09/12/2019 11:27:07 - INFO - __main__ -     eval_accuracy = 0.8628398791540786
+09/12/2019 11:27:07 - INFO - __main__ -     eval_loss = 0.3947008856108799
+09/12/2019 11:27:07 - INFO - __main__ -     global_step = 0
+09/12/2019 11:27:07 - INFO - __main__ -     loss = None
+
+### ms_St5k(mix domain train/dev(6669/1215(715+499)) -- both mixed
+09/12/2019 10:48:07 - INFO - __main__ -   ***** Running evaluation *****
+09/12/2019 10:48:07 - INFO - __main__ -     Num examples = 1215
+09/12/2019 10:48:07 - INFO - __main__ -     Batch size = 8
+Evaluating: 100%|█████████████████████████████| 152/152 [00:39<00:00,  3.91it/s]
+09/12/2019 10:48:46 - INFO - __main__ -   ***** Eval results *****
+09/12/2019 10:48:46 - INFO - __main__ -     eval_accuracy = 0.9119341563786009
+09/12/2019 10:48:46 - INFO - __main__ -     eval_loss = 0.2689976730157229
+09/12/2019 10:48:46 - INFO - __main__ -     global_step = 627
+09/12/2019 10:48:46 - INFO - __main__ -     loss = 0.05752838208032638
+### ms_St5k(mix domain train/dev(6669/1655) -- only train mixed
+09/12/2019 11:24:46 - INFO - __main__ -   label: 1 (id = 1)
+09/12/2019 11:24:47 - INFO - __main__ -   ***** Running evaluation *****
+09/12/2019 11:24:47 - INFO - __main__ -     Num examples = 1655
+09/12/2019 11:24:47 - INFO - __main__ -     Batch size = 8
+Evaluating: 100%|█████████████████████████████| 207/207 [00:53<00:00,  3.93it/s]
+09/12/2019 11:25:41 - INFO - __main__ -   ***** Eval results *****
+09/12/2019 11:25:41 - INFO - __main__ -     eval_accuracy = 0.9317220543806647
+09/12/2019 11:25:41 - INFO - __main__ -     eval_loss = 0.2950709961030794
+09/12/2019 11:25:41 - INFO - __main__ -     global_step = 627
+09/12/2019 11:25:41 - INFO - __main__ -     loss = 0.05752838208032638

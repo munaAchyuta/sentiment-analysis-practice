@@ -21,7 +21,7 @@ n_iter_init = 20
 keep_prob1_init = 0.5
 keep_prob2_init = 0.5
 keep_prob0_init = 0.8
-method = 'BiLSTM'
+method = 'ConvLSTM'
 hopnum = 0
 num_layers = 2
 
@@ -95,7 +95,7 @@ class LSTM(object):
         self.keep_prob2 = tf.placeholder(tf.float32)
         self.keep_prob0 = tf.placeholder(tf.float32)
 
-        self.restore=True
+        self.restore=False
         self.needdev=False
         if self.restore:
             self.needdev = False
@@ -282,14 +282,14 @@ class LSTM(object):
         outputs = outputs[:, -1]
         return LSTM.softmax_layer(outputs, self.weights['softmax'], self.biases['softmax'], self.keep_prob2)
     
-    def BiRNN(self, inputs, num_layers=1):
+    def BiRNN(self, inputs, num_layers=2):
         # Prepare data shape to match `rnn` function requirements
         # Current data input shape: (batch_size, timesteps, n_input)
         # Required shape: 'timesteps' tensors list of shape (batch_size, num_input)
 
         # Unstack to get a list of 'timesteps' tensors of shape (batch_size, num_input)
         #sentence_size = tf.shape(inputs)[1]
-        x = tf.unstack(inputs, self.max_sentence_len, 1)
+        x = tf.unstack(inputs, self.max_sentence_len, 1) # for static_bidirectional_rnn
 
         # Define lstm cells with tensorflow
         # Forward direction cell
@@ -298,28 +298,35 @@ class LSTM(object):
         lstm_bw_cell = rnn.BasicLSTMCell(self.n_hidden, forget_bias=1.0)
 
         # Get BiRNN cell output
-        outputs, _, _ = rnn.static_bidirectional_rnn(lstm_fw_cell, lstm_bw_cell, x, dtype=tf.float32)
+        #outputs, _, _ = rnn.static_bidirectional_rnn(lstm_fw_cell, lstm_bw_cell, x, dtype=tf.float32)
         #print("BiRNN outputs shape : ",outputs.shape)
-        #outputs, states = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, x, dtype=tf.float32)
+        #outputs, states = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, inputs, dtype=tf.float32)
+        #print("BiRNN outputs shape : ",outputs[0].shape)
         # Concat the forward and backward outputs
-        #output = tf.concat(outputs,2)
-        '''
+        #outputs = tf.concat(outputs,2)
+        #print("BiRNN outputs shape : ",outputs.shape)
+        #print("BiRNN outputs shape : ",outputs[:, -1].shape)
+        
+        def cells(layer_size, reuse=False):
+            return tf.nn.rnn_cell.LSTMCell(layer_size,initializer=tf.orthogonal_initializer(),reuse=reuse)
+        
         for n in range(num_layers):
             (out_fw, out_bw), (state_fw, state_bw) = tf.nn.bidirectional_dynamic_rnn(
-                cell_fw = cells(size_layer // 2),
-                cell_bw = cells(size_layer // 2),
-                inputs = encoder_embedded,
+                cell_fw = cells(self.n_hidden),
+                cell_bw = cells(self.n_hidden),
+                inputs = inputs,
                 dtype = tf.float32,
                 scope = 'bidirectional_rnn_%d'%(n))
-            encoder_embedded = tf.concat((out_fw, out_bw), 2)
-        W = tf.get_variable('w',shape=(size_layer, dimension_output),initializer=tf.orthogonal_initializer())
-        b = tf.get_variable('b',shape=(dimension_output),initializer=tf.zeros_initializer())
-        self.logits = tf.matmul(encoder_embedded[:, -1], W) + b
-        '''
+            inputs = tf.concat((out_fw, out_bw), 2)
+        #W = tf.get_variable('w',shape=(size_layer, dimension_output),initializer=tf.orthogonal_initializer())
+        #b = tf.get_variable('b',shape=(dimension_output),initializer=tf.zeros_initializer())
+        #self.logits = tf.matmul(encoder_embedded[:, -1], W) + b
+        
 
         # Linear activation, using rnn inner loop last output
         #return tf.matmul(outputs[-1], weights) + biases
-        return outputs[-1]
+        #return outputs[:, -1]
+        return inputs[:, -1]
     
     def BiLSTM(self, inputs, type_='last'):
         print('I am BiLSTM.')
@@ -328,6 +335,23 @@ class LSTM(object):
         hiddens = self.BiRNN(in_t)
 
         return LSTM.softmax_layer(hiddens, self.bilstm_weights['bilstm_softmax_w'], self.biases['softmax'], self.keep_prob2)
+    
+    def ConvLSTM(self, inputs, num_layers=2, conv_len=5):
+        print('I am ConvLSTM.')
+        def cells(reuse=False):
+            return tf.contrib.rnn.ConvLSTMCell(conv_ndims = 1,
+                                       input_shape = [conv_len,self.embedding_dim],
+                                       output_channels = self.n_hidden,
+                                       kernel_shape = [3])
+        
+        batch_size = tf.shape(inputs)[0]
+        #in_t = tf.nn.dropout(inputs, keep_prob=self.keep_prob0)
+        inputs = tf.reshape(inputs, [batch_size, int(self.max_sentence_len//conv_len), conv_len, self.embedding_dim])
+        rnn_cells = tf.nn.rnn_cell.MultiRNNCell([cells() for _ in range(num_layers)])
+        outputs = tf.nn.dynamic_rnn(rnn_cells, inputs, dtype = tf.float32)[1][-1].h
+        outputs = tf.reduce_max(outputs, 1)
+
+        return LSTM.softmax_layer(outputs, self.weights['softmax'], self.biases['softmax'], self.keep_prob2)
 
     def AT(self, inputs, entity, aspect, type_='last'):
         print('I am AT.')
@@ -457,6 +481,8 @@ class LSTM(object):
             prob = self.MLSTM(inputs)
         if FLAGS.method == "BiLSTM":
             prob = self.BiLSTM(inputs)
+        if FLAGS.method == "ConvLSTM":
+            prob = self.ConvLSTM(inputs)
 
         with tf.name_scope('loss'):
             reg_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
@@ -468,7 +494,7 @@ class LSTM(object):
                     reg_loss = tf.nn.l2_loss(self.Wdmn) + tf.nn.l2_loss(self.Bdmn) + tf.nn.l2_loss(self.weights['softmax']) + tf.nn.l2_loss(self.biases['softmax'])
                 reg_loss = reg_loss * self.l2_reg
                 cost = - tf.reduce_mean(tf.cast(self.y, tf.float32) * tf.log(prob)) + reg_loss
-            elif FLAGS.method in ["SLSTM","MLSTM","BiLSTM"]:
+            elif FLAGS.method in ["SLSTM","MLSTM","BiLSTM","ConvLSTM"]:
                 reg_loss = tf.nn.l2_loss(self.weights['softmax']) + tf.nn.l2_loss(self.biases['softmax'])
                 reg_loss = reg_loss * self.l2_reg
                 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=tf.log(prob), labels=tf.cast(self.y, tf.float32))) + reg_loss
@@ -697,7 +723,7 @@ class LSTM(object):
                         tr_acc_li.append(acc / cnt)
                     
                     
-                    if i==self.n_iter-1 or testacc < 0.4:
+                    if i==self.n_iter-1 or testacc < 0.4:# or testacc < 0.4:
                         btime = time.time()
                         prtstr2 += 'mathod=\t{}\tacc=\t{}\tLearning_rate=\t{}\titer_num=\t{}\tbatch_size=\t{}\thidden_num=\t{}\tl2=\t{}\ttraintime=\t{}\ttesttime=\t{}\thopnum=\t{}\tmaxacc=\t{}\n'.format(
                                     FLAGS.method,
