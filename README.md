@@ -492,84 +492,84 @@ ms_train
 2      1179      0      1179
 `
 ### ms-1(same domain train/dev(1669/715)) ?below 90 because of non-equal or imbalance distribution of features.
-09/12/2019 08:40:36 - INFO - __main__ -   ***** Running evaluation *****
-09/12/2019 08:40:36 - INFO - __main__ -     Num examples = 715
-09/12/2019 08:40:36 - INFO - __main__ -     Batch size = 8
-Evaluating: 100%|███████████████████████████████| 90/90 [00:23<00:00,  4.49it/s]
-09/12/2019 08:40:59 - INFO - __main__ -   ***** Eval results *****
-09/12/2019 08:40:59 - INFO - __main__ -     eval_accuracy = 0.8643356643356643
-09/12/2019 08:40:59 - INFO - __main__ -     eval_loss = 0.38533345030413735
-09/12/2019 08:40:59 - INFO - __main__ -     global_step = 159
-09/12/2019 08:40:59 - INFO - __main__ -     loss = 0.2732406849006437
+    09/12/2019 08:40:36 - INFO - __main__ -   ***** Running evaluation *****
+    09/12/2019 08:40:36 - INFO - __main__ -     Num examples = 715
+    09/12/2019 08:40:36 - INFO - __main__ -     Batch size = 8
+    Evaluating: 100%|███████████████████████████████| 90/90 [00:23<00:00,  4.49it/s]
+    09/12/2019 08:40:59 - INFO - __main__ -   ***** Eval results *****
+    09/12/2019 08:40:59 - INFO - __main__ -     eval_accuracy = 0.8643356643356643
+    09/12/2019 08:40:59 - INFO - __main__ -     eval_loss = 0.38533345030413735
+    09/12/2019 08:40:59 - INFO - __main__ -     global_step = 159
+    09/12/2019 08:40:59 - INFO - __main__ -     loss = 0.2732406849006437
 ### ms-1(other domain train/dev(1669/1655))
-09/12/2019 08:51:53 - INFO - __main__ -   ***** Running evaluation *****
-09/12/2019 08:51:53 - INFO - __main__ -     Num examples = 1655
-09/12/2019 08:51:53 - INFO - __main__ -     Batch size = 8
-Evaluating: 100%|█████████████████████████████| 207/207 [00:53<00:00,  3.92it/s]
-09/12/2019 08:52:47 - INFO - __main__ -   ***** Eval results *****
-09/12/2019 08:52:47 - INFO - __main__ -     eval_accuracy = 0.5444108761329305
-09/12/2019 08:52:47 - INFO - __main__ -     eval_loss = 0.9103068450222844
-09/12/2019 08:52:47 - INFO - __main__ -     global_step = 159
-09/12/2019 08:52:47 - INFO - __main__ -     loss = 0.2732406849006437
+    09/12/2019 08:51:53 - INFO - __main__ -   ***** Running evaluation *****
+    09/12/2019 08:51:53 - INFO - __main__ -     Num examples = 1655
+    09/12/2019 08:51:53 - INFO - __main__ -     Batch size = 8
+    Evaluating: 100%|█████████████████████████████| 207/207 [00:53<00:00,  3.92it/s]
+    09/12/2019 08:52:47 - INFO - __main__ -   ***** Eval results *****
+    09/12/2019 08:52:47 - INFO - __main__ -     eval_accuracy = 0.5444108761329305
+    09/12/2019 08:52:47 - INFO - __main__ -     eval_loss = 0.9103068450222844
+    09/12/2019 08:52:47 - INFO - __main__ -     global_step = 159
+    09/12/2019 08:52:47 - INFO - __main__ -     loss = 0.2732406849006437
 ### St-1(same domain train/dev(14983/1655)
-09/12/2019 09:36:47 - INFO - __main__ -   ***** Running evaluation *****
-09/12/2019 09:36:47 - INFO - __main__ -     Num examples = 1655
-09/12/2019 09:36:47 - INFO - __main__ -     Batch size = 8
-Evaluating: 100%|█████████████████████████████| 207/207 [00:53<00:00,  3.92it/s]
-09/12/2019 09:37:40 - INFO - __main__ -   ***** Eval results *****
-09/12/2019 09:37:40 - INFO - __main__ -     eval_accuracy = 0.9993957703927493
-09/12/2019 09:37:40 - INFO - __main__ -     eval_loss = 0.0014353839588882446
-09/12/2019 09:37:40 - INFO - __main__ -     global_step = 1407
-09/12/2019 09:37:40 - INFO - __main__ -     loss = 0.0018695864883779701
+    09/12/2019 09:36:47 - INFO - __main__ -   ***** Running evaluation *****
+    09/12/2019 09:36:47 - INFO - __main__ -     Num examples = 1655
+    09/12/2019 09:36:47 - INFO - __main__ -     Batch size = 8
+    Evaluating: 100%|█████████████████████████████| 207/207 [00:53<00:00,  3.92it/s]
+    09/12/2019 09:37:40 - INFO - __main__ -   ***** Eval results *****
+    09/12/2019 09:37:40 - INFO - __main__ -     eval_accuracy = 0.9993957703927493
+    09/12/2019 09:37:40 - INFO - __main__ -     eval_loss = 0.0014353839588882446
+    09/12/2019 09:37:40 - INFO - __main__ -     global_step = 1407
+    09/12/2019 09:37:40 - INFO - __main__ -     loss = 0.0018695864883779701
 ### St-1(other domain train/dev(14983/1669)
-09/12/2019 11:27:39 - INFO - __main__ -   ***** Running evaluation *****
-09/12/2019 11:27:39 - INFO - __main__ -     Num examples = 1669
-09/12/2019 11:27:39 - INFO - __main__ -     Batch size = 8
-Evaluating: 100%|█████████████████████████████| 209/209 [00:53<00:00,  4.31it/s]
-09/12/2019 11:28:32 - INFO - __main__ -   ***** Eval results *****
-09/12/2019 11:28:32 - INFO - __main__ -     eval_accuracy = 0.463151587777112
-09/12/2019 11:28:32 - INFO - __main__ -     eval_loss = 2.6307097941494444
-09/12/2019 11:28:32 - INFO - __main__ -     global_step = 0
-09/12/2019 11:28:32 - INFO - __main__ -     loss = None
+    09/12/2019 11:27:39 - INFO - __main__ -   ***** Running evaluation *****
+    09/12/2019 11:27:39 - INFO - __main__ -     Num examples = 1669
+    09/12/2019 11:27:39 - INFO - __main__ -     Batch size = 8
+    Evaluating: 100%|█████████████████████████████| 209/209 [00:53<00:00,  4.31it/s]
+    09/12/2019 11:28:32 - INFO - __main__ -   ***** Eval results *****
+    09/12/2019 11:28:32 - INFO - __main__ -     eval_accuracy = 0.463151587777112
+    09/12/2019 11:28:32 - INFO - __main__ -     eval_loss = 2.6307097941494444
+    09/12/2019 11:28:32 - INFO - __main__ -     global_step = 0
+    09/12/2019 11:28:32 - INFO - __main__ -     loss = None
 ### ms_St1k(mix domain train/dev(2669/1215(715+499)) -- both mixed
-09/12/2019 10:26:32 - INFO - __main__ -   ***** Running evaluation *****
-09/12/2019 10:26:32 - INFO - __main__ -     Num examples = 1215
-09/12/2019 10:26:32 - INFO - __main__ -     Batch size = 8
-Evaluating: 100%|█████████████████████████████| 152/152 [00:39<00:00,  3.92it/s]
-09/12/2019 10:27:11 - INFO - __main__ -   ***** Eval results *****
-09/12/2019 10:27:11 - INFO - __main__ -     eval_accuracy = 0.8691358024691358
-09/12/2019 10:27:11 - INFO - __main__ -     eval_loss = 0.3954785704171579
-09/12/2019 10:27:11 - INFO - __main__ -     global_step = 252
-09/12/2019 10:27:11 - INFO - __main__ -     loss = 0.2576741098115842
+    09/12/2019 10:26:32 - INFO - __main__ -   ***** Running evaluation *****
+    09/12/2019 10:26:32 - INFO - __main__ -     Num examples = 1215
+    09/12/2019 10:26:32 - INFO - __main__ -     Batch size = 8
+    Evaluating: 100%|█████████████████████████████| 152/152 [00:39<00:00,  3.92it/s]
+    09/12/2019 10:27:11 - INFO - __main__ -   ***** Eval results *****
+    09/12/2019 10:27:11 - INFO - __main__ -     eval_accuracy = 0.8691358024691358
+    09/12/2019 10:27:11 - INFO - __main__ -     eval_loss = 0.3954785704171579
+    09/12/2019 10:27:11 - INFO - __main__ -     global_step = 252
+    09/12/2019 10:27:11 - INFO - __main__ -     loss = 0.2576741098115842
 ### ms_St1k(mix domain train/dev(2669/1655) -- only train mixed
-09/12/2019 11:26:14 - INFO - __main__ -   ***** Running evaluation *****
-09/12/2019 11:26:14 - INFO - __main__ -     Num examples = 1655
-09/12/2019 11:26:14 - INFO - __main__ -     Batch size = 8
-Evaluating: 100%|█████████████████████████████| 207/207 [00:53<00:00,  3.94it/s]
-09/12/2019 11:27:07 - INFO - __main__ -   ***** Eval results *****
-09/12/2019 11:27:07 - INFO - __main__ -     eval_accuracy = 0.8628398791540786
-09/12/2019 11:27:07 - INFO - __main__ -     eval_loss = 0.3947008856108799
-09/12/2019 11:27:07 - INFO - __main__ -     global_step = 0
-09/12/2019 11:27:07 - INFO - __main__ -     loss = None
+    09/12/2019 11:26:14 - INFO - __main__ -   ***** Running evaluation *****
+    09/12/2019 11:26:14 - INFO - __main__ -     Num examples = 1655
+    09/12/2019 11:26:14 - INFO - __main__ -     Batch size = 8
+    Evaluating: 100%|█████████████████████████████| 207/207 [00:53<00:00,  3.94it/s]
+    09/12/2019 11:27:07 - INFO - __main__ -   ***** Eval results *****
+    09/12/2019 11:27:07 - INFO - __main__ -     eval_accuracy = 0.8628398791540786
+    09/12/2019 11:27:07 - INFO - __main__ -     eval_loss = 0.3947008856108799
+    09/12/2019 11:27:07 - INFO - __main__ -     global_step = 0
+    09/12/2019 11:27:07 - INFO - __main__ -     loss = None
 
 ### ms_St5k(mix domain train/dev(6669/1215(715+499)) -- both mixed
-09/12/2019 10:48:07 - INFO - __main__ -   ***** Running evaluation *****
-09/12/2019 10:48:07 - INFO - __main__ -     Num examples = 1215
-09/12/2019 10:48:07 - INFO - __main__ -     Batch size = 8
-Evaluating: 100%|█████████████████████████████| 152/152 [00:39<00:00,  3.91it/s]
-09/12/2019 10:48:46 - INFO - __main__ -   ***** Eval results *****
-09/12/2019 10:48:46 - INFO - __main__ -     eval_accuracy = 0.9119341563786009
-09/12/2019 10:48:46 - INFO - __main__ -     eval_loss = 0.2689976730157229
-09/12/2019 10:48:46 - INFO - __main__ -     global_step = 627
-09/12/2019 10:48:46 - INFO - __main__ -     loss = 0.05752838208032638
+    09/12/2019 10:48:07 - INFO - __main__ -   ***** Running evaluation *****
+    09/12/2019 10:48:07 - INFO - __main__ -     Num examples = 1215
+    09/12/2019 10:48:07 - INFO - __main__ -     Batch size = 8
+    Evaluating: 100%|█████████████████████████████| 152/152 [00:39<00:00,  3.91it/s]
+    09/12/2019 10:48:46 - INFO - __main__ -   ***** Eval results *****
+    09/12/2019 10:48:46 - INFO - __main__ -     eval_accuracy = 0.9119341563786009
+    09/12/2019 10:48:46 - INFO - __main__ -     eval_loss = 0.2689976730157229
+    09/12/2019 10:48:46 - INFO - __main__ -     global_step = 627
+    09/12/2019 10:48:46 - INFO - __main__ -     loss = 0.05752838208032638
 ### ms_St5k(mix domain train/dev(6669/1655) -- only train mixed
-09/12/2019 11:24:46 - INFO - __main__ -   label: 1 (id = 1)
-09/12/2019 11:24:47 - INFO - __main__ -   ***** Running evaluation *****
-09/12/2019 11:24:47 - INFO - __main__ -     Num examples = 1655
-09/12/2019 11:24:47 - INFO - __main__ -     Batch size = 8
-Evaluating: 100%|█████████████████████████████| 207/207 [00:53<00:00,  3.93it/s]
-09/12/2019 11:25:41 - INFO - __main__ -   ***** Eval results *****
-09/12/2019 11:25:41 - INFO - __main__ -     eval_accuracy = 0.9317220543806647
-09/12/2019 11:25:41 - INFO - __main__ -     eval_loss = 0.2950709961030794
-09/12/2019 11:25:41 - INFO - __main__ -     global_step = 627
-09/12/2019 11:25:41 - INFO - __main__ -     loss = 0.05752838208032638
+    09/12/2019 11:24:46 - INFO - __main__ -   label: 1 (id = 1)
+    09/12/2019 11:24:47 - INFO - __main__ -   ***** Running evaluation *****
+    09/12/2019 11:24:47 - INFO - __main__ -     Num examples = 1655
+    09/12/2019 11:24:47 - INFO - __main__ -     Batch size = 8
+    Evaluating: 100%|█████████████████████████████| 207/207 [00:53<00:00,  3.93it/s]
+    09/12/2019 11:25:41 - INFO - __main__ -   ***** Eval results *****
+    09/12/2019 11:25:41 - INFO - __main__ -     eval_accuracy = 0.9317220543806647
+    09/12/2019 11:25:41 - INFO - __main__ -     eval_loss = 0.2950709961030794
+    09/12/2019 11:25:41 - INFO - __main__ -     global_step = 627
+    09/12/2019 11:25:41 - INFO - __main__ -     loss = 0.05752838208032638
