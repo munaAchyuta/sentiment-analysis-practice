@@ -402,11 +402,6 @@ Optimization Finished! Max acc=0.2264851485148515
 mathod=	ConvLSTM	acc=	0.17945544554455445	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	105.51120042800903	testtime=	1.0928564071655273	hopnum=	0	maxacc=	0.2264851485148515
 
 
-
-
-
-
-
 # Domain Adaptation Test with Bert.
 
 ## COde can be used from (https://github.com/munaAchyuta/NLPusingBERT.git)
@@ -415,82 +410,82 @@ mathod=	ConvLSTM	acc=	0.17945544554455445	Learning_rate=	0.001	iter_num=	20	batc
 ### mix of domains train & Test(train will have small amount from other domain & test will have complete data)
 
 ### Bert Default Config
-`Model config {
-  "attention_probs_dropout_prob": 0.1,
-  "hidden_act": "gelu",
-  "hidden_dropout_prob": 0.1,
-  "hidden_size": 768,
-  "initializer_range": 0.02,
-  "intermediate_size": 3072,
-  "max_position_embeddings": 512,
-  "num_attention_heads": 12,
-  "num_hidden_layers": 12,
-  "type_vocab_size": 2,
-  "vocab_size": 30522
-}`
+    `Model config {
+      "attention_probs_dropout_prob": 0.1,
+      "hidden_act": "gelu",
+      "hidden_dropout_prob": 0.1,
+      "hidden_size": 768,
+      "initializer_range": 0.02,
+      "intermediate_size": 3072,
+      "max_position_embeddings": 512,
+      "num_attention_heads": 12,
+      "num_hidden_layers": 12,
+      "type_vocab_size": 2,
+      "vocab_size": 30522
+    }`
 
 ### data & label-wise distribution
-`1. two domains are. finance(ms) & news(St)`
-1669 -- ms_train
-715 -- ms_test
-1655 -- St_test
-14983 -- St_train
-2669 -- ms_St_1k
-1215 -- ms_St500_test
-6669 -- ms_St_5k
-`
-St-5k
-0       440      0       440
-1      3382      0      3382
-2      1069      0      1069
-`
-`
-St_1k
-0       90      0        90
-1      680      0       680
-2      208      0       208
-`
-`ms_St_5k::
-0       788      0       788
-1      3524      0      3524
-2      2248      0      2248`
-`
-ms_St_1k::
-0       438      0       438
-1       822      0       822
-2      1387      0      1387
-`
-`
-ms_St500_test
-0      189      0       189
-1      427      0       427
-2      598      0       598
-`
-`
-St_test
-label                       
-0       121      0       121
-1      1154      0      1154
-2       365      0       365
-`
-`
-St_train
-0       1091      0      1091
-1      10359      0     10359
-2       3292      0      3292
-`
-`
-ms_test
-0      152      0       152
-1       74      0        74
-2      488      0       488
-`
-`
-ms_train
-0       348      0       348
-1       141      0       141
-2      1179      0      1179
-`
+    `1. two domains are. finance(ms) & news(St)`
+    1669 -- ms_train
+    715 -- ms_test
+    1655 -- St_test
+    14983 -- St_train
+    2669 -- ms_St_1k
+    1215 -- ms_St500_test
+    6669 -- ms_St_5k
+    `
+    St-5k
+    0       440      0       440
+    1      3382      0      3382
+    2      1069      0      1069
+    `
+    `
+    St_1k
+    0       90      0        90
+    1      680      0       680
+    2      208      0       208
+    `
+    `ms_St_5k::
+    0       788      0       788
+    1      3524      0      3524
+    2      2248      0      2248`
+    `
+    ms_St_1k::
+    0       438      0       438
+    1       822      0       822
+    2      1387      0      1387
+    `
+    `
+    ms_St500_test
+    0      189      0       189
+    1      427      0       427
+    2      598      0       598
+    `
+    `
+    St_test
+    label                       
+    0       121      0       121
+    1      1154      0      1154
+    2       365      0       365
+    `
+    `
+    St_train
+    0       1091      0      1091
+    1      10359      0     10359
+    2       3292      0      3292
+    `
+    `
+    ms_test
+    0      152      0       152
+    1       74      0        74
+    2      488      0       488
+    `
+    `
+    ms_train
+    0       348      0       348
+    1       141      0       141
+    2      1179      0      1179
+    `
 ### ms-1(same domain train/dev(1669/715)) ?below 90 because of non-equal or imbalance distribution of features.
     09/12/2019 08:40:36 - INFO - __main__ -   ***** Running evaluation *****
     09/12/2019 08:40:36 - INFO - __main__ -     Num examples = 715
