@@ -1,0 +1,3 @@
+data format ::
+There are three columns in the data: content, entity and sentiment. For the 'content', it is tokenized by space. For each token in the content, there are four columns seperated by '|': word, POS, word index position, distance to the nearest entity.
+There is some data missing entity location. It is due to the difficulty in labeling the entity location. For these cases, distance to the nearest entity are all labeled '0'.
