@@ -335,6 +335,81 @@ f1_score 0.732283464566929
    macro avg       0.49      0.49      0.49       127
 weighted avg       0.73      0.73      0.73       127
 `
+## CNN
+### ms train/test
+all samples=716, correct prediction=587.0
+Iter 19: mini-batch loss=0.735799, test acc=0.819832
+all samples=1638, correct prediction in train=1616.0
+Iter 19: mini-batch loss=0.035631, train acc=0.986569
+Precision 0.9890282131661442
+Recall 0.9890282131661442
+f1_score 0.9890282131661442
+Optimization Finished! Max acc=0.8365921787709497
+mathod=	TextCNN	acc=	0.8198324022346368	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	86.64550757408142	testtime=	0.1812746524810791	hopnum=	0	maxacc=	0.8365921787709497
+### Ms train- St Test
+### St train/Test
+all samples=1616, correct prediction=121.0
+Iter 15: mini-batch loss=nan, test acc=0.074876
+all samples=14525, correct prediction in train=1081.0
+Iter 15: mini-batch loss=nan, train acc=0.074423
+Precision 0.0380952380952381
+Recall 0.0380952380952381
+f1_score 0.0380952380952381
+Optimization Finished! Max acc=0.9956683168316832
+mathod=	TextCNN	acc=	0.07487623762376237	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	148.15695142745972	testtime=	0.9364626407623291	hopnum=	0	maxacc=	0.9956683168316832
+### Transfer learning(freeze CNN layers & add new dense+drop+Fc+Softmax) -- ms on St
+all samples=716, correct prediction=488.0
+Iter 19: mini-batch loss=0.830515, test acc=0.681564
+all samples=1638, correct prediction in train=1156.0
+Iter 19: mini-batch loss=0.782737, train acc=0.705739
+Precision 0.6990595611285266
+Recall 0.6990595611285266
+f1_score 0.6990595611285266
+Optimization Finished! Max acc=0.6815642458100558
+mathod=	TextCNN_tl	acc=	0.6815642458100558	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	84.9061632156372	testtime=	0.12874984741210938	hopnum=	0	maxacc=	0.6815642458100558
+#### Test on St
+inside restore : 
+all samples=1616, correct prediction=366.0
+mini-batch loss=1.933257, test acc=0.226485
+Precision 0.23376623376623376
+Recall 0.23376623376623376
+f1_score 0.23376623376623376
+`classification_report                precision    recall  f1-score   support
+
+           0       0.00      0.00      0.00        34
+           1       0.00      0.00      0.00       438
+           2       0.23      1.00      0.38       144
+
+   micro avg       0.23      0.23      0.23       616
+   macro avg       0.08      0.33      0.13       616
+weighted avg       0.05      0.23      0.09       616`
+### ms-St1k-train & 500-test combined
+#### Train
+all samples=1205, correct prediction=1065.0
+Iter 19: mini-batch loss=0.482598, test acc=0.883817
+all samples=2605, correct prediction in train=2582.0
+Iter 19: mini-batch loss=0.028221, train acc=0.991171
+Precision 0.9950413223140496
+Recall 0.9950413223140496
+f1_score 0.9950413223140496
+Optimization Finished! Max acc=0.8929460580912864
+mathod=	TextCNN	acc=	0.8838174273858921	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	93.62835717201233	testtime=	0.20635437965393066	hopnum=	0	maxacc=	0.8929460580912864
+#### Test-St
+all samples=1127, correct prediction=931.0
+mini-batch loss=0.527230, test acc=0.826087
+Precision 0.7086614173228346
+Recall 0.7086614173228346
+f1_score 0.7086614173228346
+`classification_report                precision    recall  f1-score   support
+
+           0       0.33      0.60      0.43         5
+           1       0.81      0.82      0.82        96
+           2       0.38      0.31      0.34        26
+
+   micro avg       0.71      0.71      0.71       127
+   macro avg       0.51      0.58      0.53       127
+weighted avg       0.71      0.71      0.71       127`
+
 ## Using lstm-rnn
     `batch_size_init = 25
         n_hidden_init = 300

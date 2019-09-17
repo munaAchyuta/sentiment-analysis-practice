@@ -1,3 +1,11 @@
+'''
+## Domain Adaptation
+    Domain-Adversarial Training of Neural Networks(https://arxiv.org/abs/1505.07818)
+    Return of Frustratingly Easy Domain Adaptation(https://arxiv.org/abs/1511.05547)
+    One-shot learning of object categories(https://ieeexplore.ieee.org/document/1597116)
+'''
+
+
 import sys
 import time
 import math
@@ -21,7 +29,7 @@ n_iter_init = 20
 keep_prob1_init = 0.5
 keep_prob2_init = 0.5
 keep_prob0_init = 0.8
-method = 'ConvLSTM'
+method = 'TextCNN'
 hopnum = 0
 num_layers = 2
 
@@ -55,11 +63,11 @@ tf.app.flags.DEFINE_float('keep_prob2', keep_prob2_init, 'dropout keep prob')
 tf.app.flags.DEFINE_float('keep_prob0', keep_prob0_init, 'dropout keep prob')
 
 
-tf.app.flags.DEFINE_string('dataset', 'data/ms_St1k_train_data.txt', 'training file')
-tf.app.flags.DEFINE_string('devset', 'data/dev_data.txt', 'development file')
-tf.app.flags.DEFINE_string('testset', 'data/St_test_data.txt', 'testing file')#ms_St500_test_data.txt
-tf.app.flags.DEFINE_string('embedding_file_path', 'data/glove.6B.300d.txt', 'embedding file')
-tf.app.flags.DEFINE_string('entity_id_file_path', 'data/ms_St_tag_data.txt', 'entity-id mapping file')
+tf.app.flags.DEFINE_string('dataset', 'data/ms_St1k_train_data.txt', 'training file')#St_train_cleaned_data_5k_new
+tf.app.flags.DEFINE_string('devset', 'data/dev_data.txt', 'development file')#St_test_data
+tf.app.flags.DEFINE_string('testset', 'data/St_test_data_ex500.txt', 'testing file')#ms_St500_test_data.txt, St_test_data_ex500.txt
+tf.app.flags.DEFINE_string('embedding_file_path', 'data/glove.6B.300d.txt', 'embedding file')#glove.6B.300d_5k.txt, glove.6B.300d.txt
+tf.app.flags.DEFINE_string('entity_id_file_path', 'data/ms_tag_data.txt', 'entity-id mapping file')
 tf.app.flags.DEFINE_string('method', method.split('-')[0], 'model type: AE, AT or AEAT')
 tf.app.flags.DEFINE_string('t', 'last', 'model type: ')
 tf.app.flags.DEFINE_integer('hopnum', hopnum, 'model type: ')
@@ -95,7 +103,7 @@ class LSTM(object):
         self.keep_prob2 = tf.placeholder(tf.float32)
         self.keep_prob0 = tf.placeholder(tf.float32)
 
-        self.restore=False
+        self.restore=True
         self.needdev=False
         if self.restore:
             self.needdev = False
@@ -123,6 +131,46 @@ class LSTM(object):
             self.biases = {
                 'softmax': tf.get_variable(
                     name='softmax_b',
+                    shape=[self.n_class],
+                    initializer=tf.random_uniform_initializer(-0.01, 0.01),
+                    regularizer=tf.contrib.layers.l2_regularizer(self.l2_reg)
+                )
+            }
+        
+        with tf.name_scope('weights_tl'):
+            self.weights_tl = {
+                'softmax_tl': tf.get_variable(
+                    name='softmax_tl_w',
+                    shape=[self.n_hidden, self.n_class],
+                    initializer=tf.random_uniform_initializer(-0.01, 0.01),
+                    regularizer=tf.contrib.layers.l2_regularizer(self.l2_reg)
+                )
+            }
+
+        with tf.name_scope('biases_tl'):
+            self.biases_tl = {
+                'softmax_tl': tf.get_variable(
+                    name='softmax_tl_b',
+                    shape=[self.n_class],
+                    initializer=tf.random_uniform_initializer(-0.01, 0.01),
+                    regularizer=tf.contrib.layers.l2_regularizer(self.l2_reg)
+                )
+            }
+        
+        with tf.name_scope('weights_tll'):
+            self.weights_tll = {
+                'softmax_tll': tf.get_variable(
+                    name='softmax_tll_w',
+                    shape=[self.n_hidden, self.n_class],
+                    initializer=tf.random_uniform_initializer(-0.01, 0.01),
+                    regularizer=tf.contrib.layers.l2_regularizer(self.l2_reg)
+                )
+            }
+
+        with tf.name_scope('biases_tll'):
+            self.biases_tll = {
+                'softmax_tll': tf.get_variable(
+                    name='softmax_tll_b',
                     shape=[self.n_class],
                     initializer=tf.random_uniform_initializer(-0.01, 0.01),
                     regularizer=tf.contrib.layers.l2_regularizer(self.l2_reg)
@@ -260,6 +308,22 @@ class LSTM(object):
             return state.h
         return outputs
     
+    def apply_attention(self, inputs, batch_size, seq_len, size_layer):
+        '''
+        size_layer = number of output nodes. similar to inputs.
+        '''
+        x_attention = tf.reshape(inputs,[-1,size_layer])
+        attention_size=tf.get_variable(name='attention',shape=[size_layer,1],dtype=tf.float32,initializer=tf.random_uniform_initializer(-0.01,0.01))
+        bias_ = tf.get_variable(name='bias_',shape=[1],dtype=tf.float32,initializer=tf.random_uniform_initializer(-0.01,0.01))
+        linear_projection = tf.add(tf.matmul(x_attention,attention_size),bias_)
+        reshape_ = tf.reshape(linear_projection,[batch_size,seq_len,-1])
+        attention_output=tf.nn.softmax(reshape_,dim=1)
+        #atten_visualize=tf.reshape(attention_output,[batch_size,seq_len],name='plot_dis')
+        multi = tf.multiply(attention_output,inputs)
+        atten_out_s = tf.reduce_sum(multi,1)
+        
+        return atten_out_s
+    
     def SLSTM(self, inputs, type_='last'):
         print('I am SLSTM.')
         batch_size = tf.shape(inputs)[0]
@@ -282,10 +346,11 @@ class LSTM(object):
         outputs = outputs[:, -1]
         return LSTM.softmax_layer(outputs, self.weights['softmax'], self.biases['softmax'], self.keep_prob2)
     
-    def BiRNN(self, inputs, num_layers=2):
+    def BiRNN(self, inputs, num_layers=1):
         # Prepare data shape to match `rnn` function requirements
         # Current data input shape: (batch_size, timesteps, n_input)
         # Required shape: 'timesteps' tensors list of shape (batch_size, num_input)
+        batch_size = tf.shape(inputs)[0]
 
         # Unstack to get a list of 'timesteps' tensors of shape (batch_size, num_input)
         #sentence_size = tf.shape(inputs)[1]
@@ -294,45 +359,31 @@ class LSTM(object):
         # Define lstm cells with tensorflow
         # Forward direction cell
         lstm_fw_cell = rnn.BasicLSTMCell(self.n_hidden, forget_bias=1.0)
+        lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(lstm_fw_cell, output_keep_prob=1. - self.keep_prob1)
         # Backward direction cell
         lstm_bw_cell = rnn.BasicLSTMCell(self.n_hidden, forget_bias=1.0)
+        lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(lstm_bw_cell, output_keep_prob=1. - self.keep_prob1)
+        
+        initial_fw_state = lstm_fw_cell.zero_state(batch_size, dtype='float32')
+        initial_bw_state = lstm_bw_cell.zero_state(batch_size, dtype='float32')
+        
+        outputs, _  = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, inputs,
+                                                  initial_state_bw=initial_bw_state,
+                                                      initial_state_fw=initial_fw_state,dtype=tf.float32)
 
         # Get BiRNN cell output
         #outputs, _, _ = rnn.static_bidirectional_rnn(lstm_fw_cell, lstm_bw_cell, x, dtype=tf.float32)
-        #print("BiRNN outputs shape : ",outputs.shape)
         #outputs, states = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, inputs, dtype=tf.float32)
-        #print("BiRNN outputs shape : ",outputs[0].shape)
         # Concat the forward and backward outputs
-        #outputs = tf.concat(outputs,2)
-        #print("BiRNN outputs shape : ",outputs.shape)
-        #print("BiRNN outputs shape : ",outputs[:, -1].shape)
-        
-        def cells(layer_size, reuse=False):
-            return tf.nn.rnn_cell.LSTMCell(layer_size,initializer=tf.orthogonal_initializer(),reuse=reuse)
-        
-        for n in range(num_layers):
-            (out_fw, out_bw), (state_fw, state_bw) = tf.nn.bidirectional_dynamic_rnn(
-                cell_fw = cells(self.n_hidden),
-                cell_bw = cells(self.n_hidden),
-                inputs = inputs,
-                dtype = tf.float32,
-                scope = 'bidirectional_rnn_%d'%(n))
-            inputs = tf.concat((out_fw, out_bw), 2)
-        #W = tf.get_variable('w',shape=(size_layer, dimension_output),initializer=tf.orthogonal_initializer())
-        #b = tf.get_variable('b',shape=(dimension_output),initializer=tf.zeros_initializer())
-        #self.logits = tf.matmul(encoder_embedded[:, -1], W) + b
-        
+        outputs = tf.concat(outputs,2)
 
-        # Linear activation, using rnn inner loop last output
-        #return tf.matmul(outputs[-1], weights) + biases
-        #return outputs[:, -1]
-        return inputs[:, -1]
+        return outputs[:, -1]
     
     def BiLSTM(self, inputs, type_='last'):
         print('I am BiLSTM.')
-        batch_size = tf.shape(inputs)[0]
-        in_t = tf.nn.dropout(inputs, keep_prob=self.keep_prob0)
-        hiddens = self.BiRNN(in_t)
+        #batch_size = tf.shape(inputs)[0]
+        #in_t = tf.nn.dropout(inputs, keep_prob=self.keep_prob0)
+        hiddens = self.BiRNN(inputs)
 
         return LSTM.softmax_layer(hiddens, self.bilstm_weights['bilstm_softmax_w'], self.biases['softmax'], self.keep_prob2)
     
@@ -351,7 +402,79 @@ class LSTM(object):
         outputs = tf.nn.dynamic_rnn(rnn_cells, inputs, dtype = tf.float32)[1][-1].h
         outputs = tf.reduce_max(outputs, 1)
 
-        return LSTM.softmax_layer(outputs, self.weights['softmax'], self.biases['softmax'], self.keep_prob2)
+        return outputs#LSTM.softmax_layer(outputs, self.weights['softmax'], self.biases['softmax'], self.keep_prob2)
+    
+    def ConvLSTM_tll(self, inputs, num_layers=2, conv_len=5):
+        print('I am ConvLSTM_tll.')
+        outputs = self.ConvLSTM(inputs)
+        #tf.contrib.layers.fully_connected(outputs,3)
+        #hidden = tf.layers.dense(inputs=outputs, units=300, activation=tf.nn.relu)
+        #hidden = tf.nn.dropout(hidden, keep_prob=self.keep_prob2)
+        output = tf.layers.dense(inputs=outputs, units=300)
+
+        return LSTM.softmax_layer(output, self.weights_tll['softmax_tll'], self.biases_tll['softmax_tll'], self.keep_prob2)
+        #return LSTM.softmax_layer(outputs, self.weights['softmax'], self.biases['softmax'], self.keep_prob2)
+    
+    def ConvLSTM_tl(self, inputs, num_layers=2, conv_len=5):
+        print('I am ConvLSTM_tl.')
+        outputs = self.ConvLSTM(inputs)
+        hidden = tf.layers.dense(inputs=outputs, units=300, activation=tf.nn.relu)
+        hidden = tf.nn.dropout(hidden, keep_prob=self.keep_prob2)
+        output = tf.layers.dense(inputs=outputs, units=300)
+
+        return LSTM.softmax_layer(output, self.weights_tl['softmax_tl'], self.biases_tl['softmax_tl'], self.keep_prob2)
+    
+    def TextCNN(self, inputs, filter_sizes=[3,5], num_filters=150):
+        '''
+        https://agarnitin86.github.io/blog/2016/12/23/text-classification-cnn
+        '''
+        print('I am TextCNN.')
+        # Create a convolution + maxpool layer for each filter size
+        # Reshape to match picture format [Height x Width x Channel]
+        # Tensor input become 4-D: [Batch Size, Height, Width, Channel]
+        x = tf.expand_dims(inputs, -1)
+        #tensor is reshaped to [batch_size, sequence_length, embedding_vector_length, 1]
+        # shape of filter [filter_size, embedding_vector_len, num_input_channels, num_filters] = [ 3 * 128 * 1 * 128]
+        # W shape similar to filter
+        pooled_outputs = []
+        for i, filter_size in enumerate(filter_sizes):
+            with tf.name_scope("conv-maxpool-%s" % filter_size):
+                # Convolution Layer
+                filter_shape = [filter_size, self.embedding_dim, 1, num_filters]
+                W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W")
+                b = tf.Variable(tf.constant(0.1, shape=[num_filters]), name="b")
+                conv = tf.nn.conv2d(
+                    x,
+                    W,
+                    strides=[1, 1, 1, 1],
+                    padding="VALID",
+                    name="conv")
+                # Apply nonlinearity
+                h = tf.nn.relu(tf.nn.bias_add(conv, b), name="relu")
+                # Maxpooling over the outputs
+                pooled = tf.nn.max_pool(
+                    h,
+                    ksize=[1, self.max_sentence_len - filter_size + 1, 1, 1],
+                    strides=[1, 1, 1, 1],
+                    padding='VALID',
+                    name="pool")
+                pooled_outputs.append(pooled)
+
+        # Combine all the pooled features
+        num_filters_total = num_filters * len(filter_sizes)
+        h_pool = tf.concat(pooled_outputs, self.n_class)
+        h_pool_flat = tf.reshape(h_pool, [-1, num_filters_total])
+        
+        return h_pool_flat#LSTM.softmax_layer(h_pool_flat, self.weights['softmax'], self.biases['softmax'], self.keep_prob2)
+    
+    def TextCNN_tl(self, inputs, filter_sizes=[3,5], num_filters=150):
+        print('I am TextCNN_tl.')
+        outputs = self.TextCNN(inputs, filter_sizes=[3,5], num_filters=150)
+        hidden = tf.layers.dense(inputs=outputs, units=300, activation=tf.nn.relu)
+        hidden = tf.nn.dropout(hidden, keep_prob=self.keep_prob2)
+        output = tf.layers.dense(inputs=outputs, units=300)
+
+        return LSTM.softmax_layer(output, self.weights_tl['softmax_tl'], self.biases_tl['softmax_tl'], self.keep_prob2)
 
     def AT(self, inputs, entity, aspect, type_='last'):
         print('I am AT.')
@@ -414,7 +537,7 @@ class LSTM(object):
         entity1 = inputs * entity0
         in_t = tf.concat([inputs, entity1], 2)
         in_t = in_t * self.e_loc
-        in_t = tf.nn.dropout(in_t, keep_prob=self.keep_prob0)
+        in_t = tf.nn.dropout(in_t, keep_prob=self.keep_prob1)
         cell = tf.nn.rnn_cell.LSTMCell
         hiddens = self.dynamic_rnn(cell, in_t, self.sen_len, self.max_sentence_len, 'AT', "all")
 
@@ -434,7 +557,7 @@ class LSTM(object):
             entity = entity + r
 
         h = tf.matmul(tf.reshape(entity,[-1,self.n_hidden]),self.Wdmn)
-        h = tf.nn.dropout(h, keep_prob=self.keep_prob2)
+        #h = tf.nn.dropout(h, keep_prob=self.keep_prob2)
         b = tf.ones([batch_size,self.n_hidden])*self.Bdmn
         h = h + b
         return LSTM.softmax_layer(h, self.weights['softmax'], self.biases['softmax'], self.keep_prob2)
@@ -482,7 +605,15 @@ class LSTM(object):
         if FLAGS.method == "BiLSTM":
             prob = self.BiLSTM(inputs)
         if FLAGS.method == "ConvLSTM":
-            prob = self.ConvLSTM(inputs)
+            outputs = self.ConvLSTM(inputs)
+            prob = LSTM.softmax_layer(outputs, self.weights['softmax'], self.biases['softmax'], self.keep_prob2)
+        if FLAGS.method == "ConvLSTM_tl":
+            prob = self.ConvLSTM_tl(inputs)
+        if FLAGS.method == "TextCNN":
+            outputs = self.TextCNN(inputs)
+            prob = LSTM.softmax_layer(outputs, self.weights['softmax'], self.biases['softmax'], self.keep_prob2)
+        if FLAGS.method == "TextCNN_tl":
+            prob = self.TextCNN_tl(inputs)
 
         with tf.name_scope('loss'):
             reg_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
@@ -498,12 +629,30 @@ class LSTM(object):
                 reg_loss = tf.nn.l2_loss(self.weights['softmax']) + tf.nn.l2_loss(self.biases['softmax'])
                 reg_loss = reg_loss * self.l2_reg
                 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=tf.log(prob), labels=tf.cast(self.y, tf.float32))) + reg_loss
+            elif FLAGS.method in ["ConvLSTM_tl","TextCNN_tl"]:
+                #reg_loss = tf.nn.l2_loss(self.weights_tll['softmax_tll']) + tf.nn.l2_loss(self.biases_tll['softmax_tll'])
+                reg_loss = tf.nn.l2_loss(self.weights_tl['softmax_tl']) + tf.nn.l2_loss(self.biases_tl['softmax_tl'])
+                reg_loss = reg_loss * self.l2_reg
+                cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=tf.log(prob), labels=tf.cast(self.y, tf.float32))) + reg_loss
             else:
                 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=tf.log(prob), labels=tf.cast(self.y, tf.float32))) 
 
         with tf.name_scope('train'):
-            global_step = tf.Variable(0, name="tr_global_step", trainable=False)
-            optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(cost, global_step=global_step)
+            if FLAGS.method in ["ConvLSTM_tl","TextCNN_tl"]:
+                global_step = tf.Variable(0, name="tr_global_step", trainable=False)
+                tvars1 = tf.trainable_variables()
+                print([v.name for v in tvars1])
+                #tvars = [v for v in tvars1 if 'softmax_tll_w' in v.name or 'softmax_tll_b' in v.name]#'dense' in v.name or 
+                tvars = [v for v in tvars1 if 'dense' in v.name or 'softmax_tl_w' in v.name or 'softmax_tl_b' in v.name]
+                print([v.name for v in tvars])
+                #tvars_pre = [v for v in tvars1 if 'softmax_tll' not in v.name] #if 'dense' not in v.name
+                tvars_pre = [v for v in tvars1 if 'dense' not in v.name]
+                print([v.name for v in tvars_pre])
+                optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(cost, global_step=global_step, var_list=tvars)
+                #optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(cost, global_step=global_step)
+            else:
+                global_step = tf.Variable(0, name="tr_global_step", trainable=False)
+                optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(cost, global_step=global_step)
 
         with tf.name_scope('predict'):
             correct_pred = tf.equal(tf.argmax(prob, 1), tf.argmax(self.y, 1))
@@ -516,12 +665,14 @@ class LSTM(object):
 
             # Add ops to save and restore all the variables.
             saver = tf.train.Saver()
+            if FLAGS.method in ["ConvLSTM_tl","TextCNN_tl"]:
+                saver_pre = tf.train.Saver(var_list=tvars_pre)
 
             init = tf.global_variables_initializer()
             sess.run(init)
             
             # `sess.graph` provides access to the graph used in a `tf.Session`.
-            #writer = tf.summary.FileWriter("tmp/log/", sess.graph)
+            writer = tf.summary.FileWriter("tmp/log/", sess.graph)
 
             dt_x, dt_sen_len, dt_entity, dt_y, dt_yvalue, idlist, dt_pos, dt_eloc = load_inputs_data_at(
                 FLAGS.dataset,
@@ -642,6 +793,11 @@ class LSTM(object):
                 print("f1_score", sk.metrics.f1_score(ty, py, average='micro'))
                 print("classification_report ",sk.metrics.classification_report(y_true=ty, y_pred=py, target_names=['0','1','2']))
             else:
+                if FLAGS.method in ["ConvLSTM_tl","TextCNN_tl"]:
+                    #savefilename_pre = 'ME-ABSA-AAAI-' + 'ConvLSTM'
+                    savefilename_pre = 'ME-ABSA-AAAI-' + 'TextCNN'
+                    #saver_pre.restore(sess, './models_convlstm_st/'+savefilename)
+                    saver_pre.restore(sess, './models_cnn_St/'+savefilename_pre)
                 max_acc = 0.
 
                 batch_count = 0
@@ -795,7 +951,7 @@ class LSTM(object):
                     f.write(prtstr2)
                     f.close()
             # arch view
-            #writer.close()
+            writer.close()
 
 
 
