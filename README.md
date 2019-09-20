@@ -28,11 +28,12 @@
 
 ## Result Analysis( for users who are not interested in going into experiments details.)
 ##### Order wise models performances
-    1. Bert (LM-Transformer)
-    2.SLSTM & CEA (using word2vec, non-linear transformation for getting sentence vec.) (CEA would be more preferable if sentence length is big. min 100+ words.)
-    3.ConvLSTM (using word2vec, non-linear transformation for getting sentence vec.)
-    4.Random Forest (using word2vec, minmax for getting sentence vec.)
-    5.SSVM, Logistic Regression (using word2vec, minmax for getting sentence vec.)
+    1.Bert (LM-Transformer)
+    2.CNN
+    3.SLSTM & CEA (using word2vec, non-linear transformation for getting sentence vec.) (CEA would be more preferable if sentence length is big. min 100+ words.)
+    4.ConvLSTM (using word2vec, non-linear transformation for getting sentence vec.)
+    5.Random Forest (using word2vec, minmax for getting sentence vec.)
+    6.SSVM, Logistic Regression (using word2vec, minmax for getting sentence vec.)
 
 ## Experiments
 ### data train/test (2 domain data "ms(finance) & St(News)". file name starts with ms_St are combined one)
@@ -335,7 +336,7 @@ f1_score 0.732283464566929
    macro avg       0.49      0.49      0.49       127
 weighted avg       0.73      0.73      0.73       127
 `
-## CNN
+## CNN -- using Glove
 ### ms train/test
 all samples=716, correct prediction=587.0
 Iter 19: mini-batch loss=0.735799, test acc=0.819832
@@ -348,41 +349,110 @@ Optimization Finished! Max acc=0.8365921787709497
 mathod=	TextCNN	acc=	0.8198324022346368	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	86.64550757408142	testtime=	0.1812746524810791	hopnum=	0	maxacc=	0.8365921787709497
 ### Ms train- St Test
 ### St train/Test
-all samples=1616, correct prediction=121.0
-Iter 15: mini-batch loss=nan, test acc=0.074876
-all samples=14525, correct prediction in train=1081.0
-Iter 15: mini-batch loss=nan, train acc=0.074423
-Precision 0.0380952380952381
-Recall 0.0380952380952381
-f1_score 0.0380952380952381
-Optimization Finished! Max acc=0.9956683168316832
-mathod=	TextCNN	acc=	0.07487623762376237	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	148.15695142745972	testtime=	0.9364626407623291	hopnum=	0	maxacc=	0.9956683168316832
+all samples=1616, correct prediction=1458.0
+Iter 19: mini-batch loss=0.650684, test acc=0.902228
+all samples=9621, correct prediction in train=9594.0
+Iter 19: mini-batch loss=0.024374, train acc=0.997194
+Precision 1.0
+Recall 1.0
+f1_score 1.0
+Optimization Finished! Max acc=0.9071782178217822
+mathod=	TextCNN	acc=	0.9022277227722773	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	147.83020615577698	testtime=	0.38741612434387207	hopnum=	0	maxacc=	0.9071782178217822
 ### Transfer learning(freeze CNN layers & add new dense+drop+Fc+Softmax) -- ms on St
-all samples=716, correct prediction=488.0
-Iter 19: mini-batch loss=0.830515, test acc=0.681564
-all samples=1638, correct prediction in train=1156.0
-Iter 19: mini-batch loss=0.782737, train acc=0.705739
-Precision 0.6990595611285266
-Recall 0.6990595611285266
-f1_score 0.6990595611285266
-Optimization Finished! Max acc=0.6815642458100558
-mathod=	TextCNN_tl	acc=	0.6815642458100558	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	84.9061632156372	testtime=	0.12874984741210938	hopnum=	0	maxacc=	0.6815642458100558
+all samples=716, correct prediction=517.0
+Iter 19: mini-batch loss=1.005375, test acc=0.722067
+all samples=861, correct prediction in train=791.0
+Iter 19: mini-batch loss=0.242820, train acc=0.918699
+Precision 0.9186991869918699
+Recall 0.9186991869918699
+f1_score 0.91869918699187
+Optimization Finished! Max acc=0.7304469273743017
+mathod=	TextCNN_tl	acc=	0.7220670391061452	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	42.36072874069214	testtime=	0.0574953556060791	hopnum=	0	maxacc=	0.7304469273743017
 #### Test on St
 inside restore : 
-all samples=1616, correct prediction=366.0
-mini-batch loss=1.933257, test acc=0.226485
-Precision 0.23376623376623376
-Recall 0.23376623376623376
-f1_score 0.23376623376623376
-`classification_report                precision    recall  f1-score   support
+all samples=1616, correct prediction=534.0
+mini-batch loss=2.598211, test acc=0.330446
+Precision 0.3181818181818182
+Recall 0.3181818181818182
+f1_score 0.3181818181818182
+classification_report                precision    recall  f1-score   support
 
-           0       0.00      0.00      0.00        34
-           1       0.00      0.00      0.00       438
-           2       0.23      1.00      0.38       144
+           0       0.10      0.68      0.17        34
+           1       0.77      0.18      0.30       438
+           2       0.33      0.64      0.43       144
+
+   micro avg       0.32      0.32      0.32       616
+   macro avg       0.40      0.50      0.30       616
+weighted avg       0.63      0.32      0.32       616
+
+
+
+## CNN -- Using FastText
+
+### ms train/test -- using CNN
+all samples=716, correct prediction=594.0
+Iter 19: mini-batch loss=0.695071, test acc=0.829609
+all samples=861, correct prediction in train=847.0
+Iter 19: mini-batch loss=0.050353, train acc=0.983740
+Precision 0.983739837398374
+Recall 0.983739837398374
+f1_score 0.983739837398374
+Optimization Finished! Max acc=0.840782122905028
+mathod=	TextCNN	acc=	0.8296089385474861	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	47.960564851760864	testtime=	0.0579984188079834	hopnum=	0	maxacc=	0.840782122905028
+### Ms train- St Test -- using CNN
+inside restore : 
+all samples=1616, correct prediction=370.0
+mini-batch loss=2.198909, test acc=0.228960
+Precision 0.2305194805194805
+Recall 0.2305194805194805
+f1_score 0.2305194805194805
+classification_report                precision    recall  f1-score   support
+
+           0       0.08      0.24      0.12        34
+           1       0.71      0.02      0.04       438
+           2       0.25      0.86      0.39       144
 
    micro avg       0.23      0.23      0.23       616
-   macro avg       0.08      0.33      0.13       616
-weighted avg       0.05      0.23      0.09       616`
+   macro avg       0.35      0.37      0.18       616
+weighted avg       0.57      0.23      0.13       616
+
+### St train/Test -- using FastText , CNN
+all samples=1616, correct prediction=1454.0
+Iter 19: mini-batch loss=0.640389, test acc=0.899752
+all samples=9621, correct prediction in train=9603.0
+Iter 19: mini-batch loss=0.010043, train acc=0.998129
+Precision 1.0
+Recall 1.0
+f1_score 1.0
+Optimization Finished! Max acc=0.9053217821782178
+mathod=	TextCNN	acc=	0.8997524752475248	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	85.37247681617737	testtime=	0.3496851921081543	hopnum=	0	maxacc=	0.9053217821782178
+### Transfer learning(freeze CNN layers & add new dense+drop+Fc+Softmax) -- ms on St -- using FastText
+all samples=716, correct prediction=547.0
+Iter 19: mini-batch loss=0.869543, test acc=0.763966
+all samples=861, correct prediction in train=790.0
+Iter 19: mini-batch loss=0.223046, train acc=0.917538
+Precision 0.9175377468060395
+Recall 0.9175377468060395
+f1_score 0.9175377468060395
+Optimization Finished! Max acc=0.7863128491620112
+mathod=	TextCNN_tl	acc=	0.7639664804469274	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	48.010608434677124	testtime=	0.060806989669799805	hopnum=	0	maxacc=	0.7863128491620112
+#### Test on St -- using FastText
+inside restore : 
+all samples=1616, correct prediction=596.0
+mini-batch loss=2.333089, test acc=0.368812
+Precision 0.36363636363636365
+Recall 0.36363636363636365
+f1_score 0.36363636363636365
+classification_report                precision    recall  f1-score   support
+
+           0       0.18      0.85      0.30        34
+           1       0.94      0.13      0.24       438
+           2       0.35      0.94      0.51       144
+
+   micro avg       0.36      0.36      0.36       616
+   macro avg       0.49      0.64      0.35       616
+weighted avg       0.76      0.36      0.30       616
+
 ### ms-St1k-train & 500-test combined
 #### Train
 all samples=1205, correct prediction=1065.0
@@ -409,6 +479,61 @@ f1_score 0.7086614173228346
    micro avg       0.71      0.71      0.71       127
    macro avg       0.51      0.58      0.53       127
 weighted avg       0.71      0.71      0.71       127`
+
+#############################################
+## CEA -- Using FastText
+
+### ms train/test -- using CEA
+
+### Ms train- St Test -- using CEA
+
+### St train/Test -- using FastText , CEA
+all samples=1616, correct prediction=1609.0
+Iter 19: mini-batch loss=0.013007, test acc=0.995668
+all samples=14525, correct prediction in train=14489.0
+Iter 19: mini-batch loss=0.008088, train acc=0.997522
+Precision 1.0
+Recall 1.0
+f1_score 1.0
+Optimization Finished! Max acc=0.9956683168316832
+mathod=	CEA	acc=	0.9956683168316832	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	793.8511781692505	testtime=	2.704664707183838	hopnum=	3	maxacc=	0.9956683168316832
+### Transfer learning(freeze CEA layers & add new dense+Fc+Softmax) -- ms on St -- using FastText
+all samples=716, correct prediction=505.0
+Iter 19: mini-batch loss=0.762442, test acc=0.705307
+all samples=1638, correct prediction in train=1179.0
+Iter 19: mini-batch loss=0.723564, train acc=0.719780
+Precision 0.7115987460815048
+Recall 0.7115987460815048
+f1_score 0.7115987460815048
+Optimization Finished! Max acc=0.7122905027932961
+mathod=	CEA_tl	acc=	0.7053072625698324	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	160.59714698791504	testtime=	0.4434077739715576	hopnum=	3	maxacc=	0.7122905027932961
+#### Test on St -- using FastText
+
+#############################################
+
+### St train/Test -- using FastText -- using ConvLSTM
+
+### St train/Test -- using FastText , ConvLSTM
+all samples=1616, correct prediction=1419.0
+Iter 19: mini-batch loss=0.808161, test acc=0.878094
+all samples=9621, correct prediction in train=9594.0
+Iter 19: mini-batch loss=0.005984, train acc=0.997194
+Precision 0.9967793880837359
+Recall 0.9967793880837359
+f1_score 0.9967793880837359
+Optimization Finished! Max acc=0.8935643564356436
+mathod=	ConvLSTM	acc=	0.8780940594059405	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	406.0343906879425	testtime=	2.1625263690948486	hopnum=	0	maxacc=	0.8935643564356436
+### Transfer learning(freeze ConvLSTM layers & add new dense+drop+Fc+Softmax) -- ms on St -- using FastText
+all samples=716, correct prediction=498.0
+Iter 19: mini-batch loss=0.795174, test acc=0.695531
+all samples=861, correct prediction in train=628.0
+Iter 19: mini-batch loss=0.696245, train acc=0.729384
+Precision 0.7293844367015099
+Recall 0.7293844367015099
+f1_score 0.7293844367015099
+Optimization Finished! Max acc=0.7039106145251397
+mathod=	ConvLSTM_tl	acc=	0.6955307262569832	Learning_rate=	0.001	iter_num=	20	batch_size=	25	hidden_num=	300	l2=	0.001	traintime=	56.93074560165405	testtime=	0.2918252944946289	hopnum=	0	maxacc=	0.7039106145251397
+#### Test on St -- using FastText
 
 ## Using lstm-rnn
     `batch_size_init = 25

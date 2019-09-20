@@ -1,7 +1,9 @@
 import numpy as np
 import os
 
-printmode=False
+printmode = False
+use_word2vec = 'fasttext'
+#use_word2vec = 'w2v'
 
 def batch_index(length, batch_size, n_iter=100, is_shuffle=True):
     index = np.arange(length)
@@ -43,6 +45,55 @@ def load_w2v(w2v_file, embedding_dim, is_skip=False):
         raise Exception('w2v error')
     return word_dict, w2v
 
+def load_fasttext_w2v(w2v_file, domain_word_file, embedding_dim, is_skip=False):
+    '''
+        Loads and returns a word2id dictionary and a word embedding
+    
+        Args:
+            w2v_file: w2v filename
+            embedding_dim: dimention of word vectors
+            is_skip: is there a headline to skip
+    
+        Returns:
+            word_dict: a dictionary whose key is a word and value is the id of the word
+            w2v: a list of vectors for each word
+    '''
+    
+    import fasttext
+    fs_model = fasttext.load_model("fasttext_model/fasttext_model.bin")
+    print("dog : fasttext vec : ",fs_model['dog'])
+    
+    fp = open(w2v_file,encoding='utf8')
+    if is_skip:
+        fp.readline()
+    w2v = []
+    word_dict = dict()
+    cnt = -1
+    for line in fp:
+        cnt += 1
+        line = line.split()
+        if len(line) != embedding_dim + 1:
+            print('a bad word embedding: {} at {}'.format(line[0],cnt))
+            continue
+        word = line[0]
+        vec = fs_model[line[0]]
+        w2v.append(vec)
+        word_dict[word] = cnt
+    print('oringin length of word_dict:', len(word_dict), ',length of w2v', len(w2v))
+    
+    with open(domain_word_file,'r') as f:
+        dom_words = [i.strip() for i in f.readlines()]
+    cnt_for_dom = max(word_dict.values())
+    for dom_word in dom_words:
+        if dom_word not in word_dict:
+            vec = fs_model[dom_word]
+            w2v.append(vec)
+            word_dict[dom_word] = cnt_for_dom
+            cnt_for_dom += 1
+    if (len(word_dict)!=len(w2v)):
+        raise Exception('w2v error')
+    return word_dict, w2v
+
 def load_tag_embedding(tag_file, word_dict, w2v, embedding_dim):
     '''
         entity aspect embeddings are initialized here.
@@ -80,6 +131,35 @@ def load_tag_embedding(tag_file, word_dict, w2v, embedding_dim):
                     print('$WARNING LEVEL-2$: {} not in dic'.format(line))
     return word_dict, w2v
 
+def load_fasttext_tag_embedding(tag_file, word_dict, w2v, embedding_dim):
+    '''
+        entity aspect embeddings are initialized here.
+
+        Args:
+            tag_file: entity file or aspect file
+            word_dict: a dictionary whose key is a word and value is the id of the word
+            w2v: a list of vectors for each word
+            embedding_dim: dimention of word vectors
+
+        Returns:
+            word_dict: a dictionary whose key is a word and value is the id of the word
+            w2v: a list of vectors for each word
+    '''
+    import fasttext
+    fs_model = fasttext.load_model("fasttext_model/fasttext_model.bin")
+    print("dog : fasttext vec for taG : ",fs_model['dog'])
+    
+    for line in open(tag_file, encoding='utf8'):
+        line = line.lower().rstrip('\n')
+        if line in word_dict or line.replace(' ','') in word_dict:
+            continue
+        else:
+            #word = line[0]
+            vec = fs_model[line]
+            w2v.append(vec)
+            word_dict[line] = len(word_dict) + 1
+    return word_dict, w2v
+
 def load_word_embedding(w2v_file, entity_id_file, embedding_dim, is_skip=False):
     '''
         Loads and returns a word2id dictionary and a word embedding;
@@ -98,6 +178,16 @@ def load_word_embedding(w2v_file, entity_id_file, embedding_dim, is_skip=False):
 
     word_dict, w2v = load_w2v(w2v_file, embedding_dim, is_skip)
     word_dict, w2v = load_tag_embedding(entity_id_file, word_dict, w2v, embedding_dim)
+
+    w2v = np.asarray(w2v, dtype=np.float32)
+    print('Shape of PreEmbedding is',w2v.shape)
+    print('modified length of word_dict:', len(word_dict), ',length of w2v', len(w2v))
+    return word_dict, w2v
+
+def load_fasttext_word_embedding(w2v_file, domain_word_file, entity_id_file, embedding_dim, is_skip=False):
+
+    word_dict, w2v = load_fasttext_w2v(w2v_file, domain_word_file, embedding_dim, is_skip)
+    word_dict, w2v = load_fasttext_tag_embedding(entity_id_file, word_dict, w2v, embedding_dim)
 
     w2v = np.asarray(w2v, dtype=np.float32)
     print('Shape of PreEmbedding is',w2v.shape)
@@ -285,8 +375,8 @@ def load_data_init(datset_file, test_file, w2v_file, entity_id_file, embedding_d
         raise Exception('file not exist error')
     maxlen,posset = get_max_sentence_len(datset_file)
     maxlen2,posset2 = get_max_sentence_len(test_file)
-    maxlen2 = 45
-    maxlen = 45
+    maxlen2 = 45#25#45
+    maxlen = 45#25#45
     print('sentence maxlen train/test:',maxlen,maxlen2)
     if maxlen2 > maxlen:
         maxlen = maxlen2
@@ -297,7 +387,12 @@ def load_data_init(datset_file, test_file, w2v_file, entity_id_file, embedding_d
     posset = {'ADV', 'PROPN', 'DET', 'SPACE', 'NUM', 'PART', 'VERB', 'AUX', 'PUNCT', 'SYM', 'INTJ', 'ADP', 'CCONJ', 'X', 'NOUN', 'ADJ', 'PRON'}
     posset = posset|posset2
     p2id, p2v = pos2vec(posset)
-    w2id, w2v = load_word_embedding(w2v_file, entity_id_file, embedding_dim)
+    if use_word2vec == 'fasttext':
+        print("USe Of FASTtext :: ")
+        domain_word_file = "data/ms_st_tokens.txt"
+        w2id, w2v = load_fasttext_word_embedding(w2v_file, domain_word_file, entity_id_file, embedding_dim)
+    else:
+        w2id, w2v = load_word_embedding(w2v_file, entity_id_file, embedding_dim)
 
     print('type',type(w2id),type(p2id))
     return w2id, w2v, p2id, p2v, maxlen
